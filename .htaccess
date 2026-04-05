@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# Block access to internal directories directly
+RewriteRule ^(core|anicom-data|config|migrations)(/.*)?$ - [R=404,L]
+
+# Route all traffic through index.php if not a real file/directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+</IfModule>
+
+# Disable directory browsing
+Options -Indexes
