@@ -120,14 +120,26 @@
     </div>
 
     <aside>
+        <?php
+        $currentUri = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+        function navActive(string $path): string {
+            global $currentUri;
+            if ($path === '/admin/' || $path === '/admin') {
+                return ($currentUri === '/admin' || $currentUri === '/admin/') ? 'active' : '';
+            }
+            return strpos($currentUri, $path) === 0 ? 'active' : '';
+        }
+        ?>
         <div class="brand">ANICOM Core</div>
         <nav>
             <ul>
-                <li><a href="/admin/" class="active"><i>■</i> Dashboard</a></li>
-                <li><a href="/admin/products"><i>■</i> Products</a></li>
-                <li><a href="/admin/categories"><i>■</i> Categories</a></li>
-                <li><a href="/admin/orders"><i>■</i> Orders</a></li>
-                <li style="margin-top: 2rem;"><a href="/" target="_blank" style="color: #60a5fa;"><i>■</i> View Storefront</a></li>
+                <li><a href="/admin/" class="<?= navActive('/admin/') ?>"><i>▦</i> Dashboard</a></li>
+                <li><a href="/admin/products" class="<?= navActive('/admin/products') ?>"><i>📦</i> Products</a></li>
+                <li><a href="/admin/categories" class="<?= navActive('/admin/categories') ?>"><i>🏷</i> Categories</a></li>
+                <li><a href="/admin/orders" class="<?= navActive('/admin/orders') ?>"><i>🛒</i> Orders</a></li>
+                <li><a href="/admin/coupons" class="<?= navActive('/admin/coupons') ?>"><i>🎟</i> Coupons</a></li>
+                <li style="margin-top: 1.5rem;"><a href="/admin/settings" class="<?= navActive('/admin/settings') ?>"><i>⚙</i> Settings</a></li>
+                <li style="margin-top: 0.5rem;"><a href="/" target="_blank" style="color: #60a5fa;"><i>↗</i> View Storefront</a></li>
             </ul>
         </nav>
     </aside>

@@ -6,6 +6,8 @@ use Core\Config;
 use Core\Database\FileDriver;
 use Core\Database\MysqlDriver;
 use Core\Cart;
+use Core\Coupon;
+use Core\Mailer;
 
 class StorefrontController extends Controller
 {
@@ -21,10 +23,12 @@ class StorefrontController extends Controller
 
     public function home()
     {
-        $products = $this->db->find('products', ['status' => 'published']);
+        $products   = $this->db->find('products', ['status' => 'published']);
+        $categories = $this->db->find('categories', []) ?: [];
         $this->render('home', [
-            'title' => Config::get('app.name') . ' | Home',
-            'products' => $products
+            'title'      => Config::get('app.name') . ' | Home',
+            'products'   => $products,
+            'categories' => $categories,
         ]);
     }
 
@@ -37,26 +41,42 @@ class StorefrontController extends Controller
             exit;
         }
 
+        // Related products (same category, exclude self)
+        $related = [];
+        if (!empty($product['category_id'])) {
+            $all     = $this->db->find('products', ['status' => 'published', 'category_id' => $product['category_id']]) ?: [];
+            $related = array_filter($all, fn($p) => $p['id'] !== $product['id']);
+            $related = array_slice(array_values($related), 0, 4);
+        }
+
         $this->render('product', [
-            'title' => $product['title'] . ' | ' . Config::get('app.name'),
-            'product' => $product
+            'title'   => $product['title'] . ' | ' . Config::get('app.name'),
+            'product' => $product,
+            'related' => $related,
         ]);
     }
 
     public function cart()
     {
-        $items = Cart::getItems();
-        $total = Cart::getTotal();
+        $items   = Cart::getItems();
+        $subtotal = Cart::getTotal();
+        $coupon  = Coupon::getSessionCoupon();
+        $discount = $coupon ? Coupon::calculateDiscount($coupon, $subtotal) : 0;
+        $total   = max(0, $subtotal - $discount);
+
         $this->render('cart', [
-            'title' => 'Shopping Cart',
-            'items' => $items,
-            'total' => $total
+            'title'    => 'Shopping Cart',
+            'items'    => $items,
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'coupon'   => $coupon,
+            'total'    => $total,
         ]);
     }
 
     public function addToCart()
     {
-        $id = $_POST['product_id'] ?? null;
+        $id  = $_POST['product_id'] ?? null;
         $qty = (int)($_POST['quantity'] ?? 1);
 
         if ($id) {
@@ -69,26 +89,58 @@ class StorefrontController extends Controller
         exit;
     }
 
+    public function applyCoupon()
+    {
+        $code = trim($_POST['coupon_code'] ?? '');
+        [$discount, $error] = Coupon::applyToSession($code);
+
+        if ($error) {
+            $_SESSION['coupon_error'] = $error;
+        } else {
+            $_SESSION['coupon_success'] = 'Coupon applied! You saved $' . number_format($discount, 2) . '.';
+        }
+
+        header('Location: /cart');
+        exit;
+    }
+
+    public function removeCoupon()
+    {
+        Coupon::removeFromSession();
+        header('Location: /cart');
+        exit;
+    }
+
     public function checkout()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $subtotal = Cart::getTotal();
+            $coupon   = Coupon::getSessionCoupon();
+            $discount = $coupon ? Coupon::calculateDiscount($coupon, $subtotal) : 0;
+            $total    = max(0, $subtotal - $discount);
+
             $orderData = [
-                'id' => uniqid('ord_'),
-                'customer_name' => $_POST['name'] ?? '',
+                'id'             => uniqid('ord_'),
+                'customer_name'  => $_POST['name'] ?? '',
                 'customer_email' => $_POST['email'] ?? '',
-                'total' => Cart::getTotal(),
-                'items' => json_encode(Cart::getItems()),
-                'status' => 'pending',
-                'created_at' => date('Y-m-d H:i:s')
+                'total'          => $total,
+                'subtotal'       => $subtotal,
+                'discount'       => $discount,
+                'coupon_code'    => $coupon['code'] ?? null,
+                'items'          => json_encode(Cart::getItems()),
+                'status'         => 'pending',
+                'created_at'     => date('Y-m-d H:i:s'),
             ];
 
-            // Order creation natively supports dynamic table initialization
             if (Config::get('database.default') === 'mysql') {
                 $this->db->query("CREATE TABLE IF NOT EXISTS `orders` (
                     `id` VARCHAR(50) PRIMARY KEY,
                     `customer_name` VARCHAR(255),
                     `customer_email` VARCHAR(255),
                     `total` DECIMAL(10,2),
+                    `subtotal` DECIMAL(10,2),
+                    `discount` DECIMAL(10,2),
+                    `coupon_code` VARCHAR(50),
                     `items` TEXT,
                     `status` VARCHAR(50),
                     `created_at` DATETIME
@@ -96,23 +148,38 @@ class StorefrontController extends Controller
             }
 
             $this->db->insert('orders', $orderData);
-            
-            // Attempt core email delivery natively
-            $mailContent = "Your order <strong>{$orderData['id']}</strong> for <strong>$" . number_format($orderData['total'], 2) . "</strong> has been received.<br>You will be notified once it ships.";
-            \Core\Mailer::send($orderData['customer_email'], 'Order Confirmation - ' . Config::get('app.name'), $mailContent);
-            
-            // Clear Cart
+
+            // Redeem coupon usage count
+            if ($coupon) {
+                Coupon::redeem($coupon['code']);
+                Coupon::removeFromSession();
+            }
+
+            $mailContent = "Your order <strong>{$orderData['id']}</strong> for <strong>$" . number_format($total, 2) . "</strong> has been received.<br>You will be notified once it ships.";
+            Mailer::send($orderData['customer_email'], 'Order Confirmation - ' . Config::get('app.name'), $mailContent);
+
             Cart::clear();
 
-            // Simple render success
-            $this->render('checkout_success', ['title' => 'Order Complete']);
+            $this->render('checkout_success', [
+                'title' => 'Order Complete',
+                'order' => $orderData,
+            ]);
             exit;
         }
 
+        $items    = Cart::getItems();
+        $subtotal = Cart::getTotal();
+        $coupon   = Coupon::getSessionCoupon();
+        $discount = $coupon ? Coupon::calculateDiscount($coupon, $subtotal) : 0;
+        $total    = max(0, $subtotal - $discount);
+
         $this->render('checkout', [
-            'title' => 'Checkout',
-            'items' => Cart::getItems(),
-            'total' => Cart::getTotal()
+            'title'    => 'Checkout',
+            'items'    => $items,
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'coupon'   => $coupon,
+            'total'    => $total,
         ]);
     }
 }

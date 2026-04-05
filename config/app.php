@@ -12,4 +12,6 @@ return [
     'debug' => (bool) env('APP_DEBUG', false),
     
     'active_theme' => env('APP_THEME', 'default'),
+
+    'api_key' => env('API_KEY', ''),
 ];
