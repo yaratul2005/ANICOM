@@ -10,7 +10,6 @@ class SettingsController extends Controller
 
     public function __construct()
     {
-        Auth::requireAdmin();
         $this->storePath = __DIR__ . '/../../anicom-data/settings/store.json';
     }
 
@@ -44,13 +43,16 @@ class SettingsController extends Controller
     {
         $current = $this->readSettings();
         $updated = array_merge($current, [
-            'store_name'   => trim($_POST['store_name'] ?? ''),
-            'store_url'    => trim($_POST['store_url'] ?? ''),
-            'store_email'  => trim($_POST['store_email'] ?? ''),
-            'timezone'     => $_POST['timezone'] ?? 'UTC',
-            'currency'     => $_POST['currency'] ?? 'USD',
-            'active_theme' => $_POST['active_theme'] ?? 'default',
-            'updated_at'   => date('Y-m-d H:i:s'),
+            'store_name'       => trim($_POST['store_name'] ?? ''),
+            'store_url'        => trim($_POST['store_url'] ?? ''),
+            'store_email'      => trim($_POST['store_email'] ?? ''),
+            'timezone'         => $_POST['timezone'] ?? 'UTC',
+            'currency'         => $_POST['currency'] ?? 'USD',
+            'active_theme'     => $_POST['active_theme'] ?? 'default',
+            'global_meta_desc' => trim($_POST['global_meta_desc'] ?? ''),
+            'head_pixel'       => $_POST['head_pixel'] ?? '',
+            'body_pixel'       => $_POST['body_pixel'] ?? '',
+            'updated_at'       => date('Y-m-d H:i:s'),
         ]);
         $this->writeSettings($updated);
         header('Location: /admin/settings?saved=1');

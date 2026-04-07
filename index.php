@@ -27,6 +27,7 @@ $router = new Router();
 
 // --- Storefront Routes ---
 $router->get('/', [StorefrontController::class, 'home']);
+$router->get('/page/{slug}', [StorefrontController::class, 'page']);
 $router->get('/product/{slug}', [StorefrontController::class, 'product']);
 $router->get('/cart', [StorefrontController::class, 'cart']);
 $router->post('/cart/add', [StorefrontController::class, 'addToCart']);

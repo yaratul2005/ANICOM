@@ -1,108 +1,121 @@
 <style>
-    .checkout-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2.5rem; align-items: start; }
-    @media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; } }
+    .checkout-layout { display: grid; grid-template-columns: 1fr 400px; gap: 3rem; align-items: start; }
+    @media (max-width: 900px) { .checkout-layout { grid-template-columns: 1fr; gap: 2rem; } }
 
-    h1 { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; letter-spacing: -0.5px; }
-    .checkout-subtitle { color: #64748b; margin-bottom: 2rem; font-size: 0.9rem; }
+    h1 { font-size: 2.2rem; font-weight: 900; color: #fff; margin-bottom: 0.5rem; letter-spacing: -1px; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    .checkout-subtitle { color: var(--m-muted); margin-bottom: 2.5rem; font-size: 1.05rem; font-weight: 500; }
 
-    .form-section { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 2rem; margin-bottom: 1.5rem; }
-    .form-section-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; }
-    .form-section-title span { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-section { background: var(--m-card); border: 1px solid var(--m-border); border-radius: 24px; padding: 2.5rem; margin-bottom: 1.5rem; position: relative; }
+    .form-section::after { content: ''; position: absolute; inset: 4px; border: var(--stitch-border); border-radius: 20px; pointer-events: none; opacity: 0.2; }
+    
+    .form-section-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; letter-spacing: 0.5px; position: relative; z-index: 2; }
+    .form-section-title span { background: var(--gradient-magic); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 900; box-shadow: 0 0 10px rgba(217,70,239,0.3); border: 1px dashed rgba(255,255,255,0.5); }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; position: relative; z-index: 2; }
     .form-grid .full { grid-column: 1 / -1; }
-    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-    label { font-size: 0.78rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-control { padding: 0.8rem 1rem; border: 1.5px solid #e2e8f0; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; color: #1e293b; transition: all 0.2s; width: 100%; }
-    .form-control:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    label { font-size: 0.8rem; font-weight: 800; color: var(--m-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .form-control { padding: 0.85rem 1.25rem; border: 1px solid var(--m-border); border-radius: 12px; font-family: var(--font-main); font-size: 1rem; color: #fff; background: rgba(0,0,0,0.3); transition: all 0.3s; width: 100%; font-weight: 500; }
+    .form-control:focus { outline: none; border-color: var(--m-cyan); background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
+    .form-control::placeholder { color: #475569; }
 
     /* Summary */
-    .order-summary { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 1.75rem; position: sticky; top: 100px; }
-    .summary-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 1.5rem; }
+    .order-summary { background: rgba(22,26,45,0.8); backdrop-filter: blur(12px); border: 1px solid var(--m-border); border-radius: 24px; padding: 2rem; position: sticky; top: 100px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+    .order-summary::before { content: ''; position: absolute; inset: 0; border-radius: 24px; padding: 2px; background: var(--gradient-magic); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0.4; }
+    
+    .summary-title { font-size: 1.25rem; font-weight: 900; color: #fff; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .summary-title svg { width: 22px; height: 22px; stroke: var(--m-purple); fill: none; stroke-width: 2.5; stroke-linecap: round; }
 
-    .summary-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid #f8fafc; }
+    .summary-item { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .summary-item:last-of-type { border-bottom: none; }
-    .s-img { width: 44px; height: 44px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; overflow: hidden; }
+    .s-img { width: 50px; height: 50px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--m-border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; overflow: hidden; }
     .s-img img { width: 100%; height: 100%; object-fit: cover; }
-    .s-name { font-size: 0.85rem; font-weight: 600; color: #0f172a; flex: 1; }
-    .s-qty { font-size: 0.75rem; color: #94a3b8; }
-    .s-price { font-weight: 700; font-size: 0.9rem; color: #0f172a; white-space: nowrap; }
+    .s-name { font-size: 0.95rem; font-weight: 700; color: #fff; flex: 1; }
+    .s-qty { font-size: 0.8rem; color: var(--m-muted); font-weight: 600; margin-top: 0.2rem; }
+    .s-price { font-weight: 800; font-size: 1rem; color: var(--m-cyan); white-space: nowrap; }
 
-    .summary-divider { border: none; border-top: 1px dashed #e2e8f0; margin: 1rem 0; }
-    .summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: #475569; padding: 0.3rem 0; }
-    .summary-row.discount { color: #16a34a; font-weight: 600; }
-    .summary-total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 0.5rem; }
-    .summary-total-row span:first-child { font-weight: 700; color: #0f172a; }
-    .summary-total-row span:last-child { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
+    .summary-divider { border: none; border-top: 1px dashed var(--m-border); margin: 1.25rem 0; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--m-text); padding: 0.4rem 0; font-weight: 600; }
+    .summary-row.discount { color: var(--m-pink); font-weight: 800; }
+    .summary-total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 0.75rem; }
+    .summary-total-row span:first-child { font-weight: 800; color: #fff; font-size: 1.1rem; }
+    .summary-total-row span:last-child { font-size: 1.8rem; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
 
-    .btn-place-order { width: 100%; padding: 1.1rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 14px; font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 800; cursor: pointer; transition: all 0.25s; margin-top: 1.25rem; letter-spacing: 0.3px; }
-    .btn-place-order:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99,102,241,0.4); }
+    .btn-place-order { width: 100%; padding: 1.25rem; background: var(--gradient-magic); color: #fff; border: none; border-radius: 20px; font-family: var(--font-main); font-size: 1.1rem; font-weight: 900; cursor: pointer; transition: all 0.3s; margin-top: 1.5rem; letter-spacing: 0.5px; position: relative; box-shadow: var(--shadow-magic); z-index: 2; }
+    .btn-place-order::before { content: ''; position: absolute; inset: 2px; border: 1px dashed rgba(255,255,255,0.5); border-radius: 18px; pointer-events: none; }
+    .btn-place-order:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(217,70,239,0.4); animation: stitch-glow 1.5s infinite alternate; }
 
-    .secure-note { display: flex; align-items: center; justify-content: center; gap: 0.4rem; color: #94a3b8; font-size: 0.78rem; margin-top: 1rem; }
+    .secure-note { display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--m-muted); font-size: 0.8rem; font-weight: 600; margin-top: 1.25rem; }
+    .secure-note svg { width: 14px; height: 14px; stroke: var(--m-cyan); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 
-<h1>Checkout</h1>
-<p class="checkout-subtitle">Almost there! Fill in your details to complete the order.</p>
+<h1>Finalize Ritual</h1>
+<p class="checkout-subtitle">Secure the coordinates for your cosmic delivery.</p>
 
 <div class="checkout-layout">
     <!-- Form -->
     <div>
         <form method="POST" action="/checkout">
             <div class="form-section">
-                <div class="form-section-title"><span>1</span> Contact Information</div>
+                <div class="form-section-title"><span>1</span> Identity Core</div>
                 <div class="form-grid">
                     <div class="form-group full">
                         <label for="name">Full Name</label>
                         <input id="name" type="text" name="name" class="form-control" value="<?= htmlspecialchars(\Core\Customer::current()['name'] ?? $_POST['name'] ?? '') ?>" placeholder="Jane Doe" required>
                     </div>
                     <div class="form-group full">
-                        <label for="email">Email Address</label>
-                        <input id="email" type="email" name="email" class="form-control" value="<?= htmlspecialchars(\Core\Customer::current()['email'] ?? $_POST['email'] ?? '') ?>" placeholder="jane@example.com" required>
+                        <label for="email">Hyperlink Address (Email)</label>
+                        <input id="email" type="email" name="email" class="form-control" value="<?= htmlspecialchars(\Core\Customer::current()['email'] ?? $_POST['email'] ?? '') ?>" placeholder="jane@cosmos.net" required>
                     </div>
                     <div class="form-group full">
-                        <label for="phone">Phone (Optional)</label>
+                        <label for="phone">Comlink Frequency (Optional)</label>
                         <input id="phone" type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>" placeholder="+1 555 000 0000">
                     </div>
                 </div>
             </div>
 
             <div class="form-section">
-                <div class="form-section-title"><span>2</span> Shipping Address</div>
+                <div class="form-section-title"><span>2</span> Spatial Coordinates</div>
                 <div class="form-grid">
                     <div class="form-group full">
-                        <label for="address">Street Address</label>
-                        <input id="address" type="text" name="address" class="form-control" placeholder="123 Main Street" required>
+                        <label for="address">Street Matrix</label>
+                        <input id="address" type="text" name="address" class="form-control" placeholder="123 Nebula Sector" required>
                     </div>
                     <div class="form-group">
-                        <label for="city">City</label>
+                        <label for="city">Sector/City</label>
                         <input id="city" type="text" name="city" class="form-control" placeholder="New York" required>
                     </div>
                     <div class="form-group">
-                        <label for="zip">ZIP / Postal Code</label>
+                        <label for="zip">Space-Time Code</label>
                         <input id="zip" type="text" name="zip" class="form-control" placeholder="10001">
                     </div>
                     <div class="form-group full">
-                        <label for="country">Country</label>
-                        <input id="country" type="text" name="country" class="form-control" placeholder="United States">
+                        <label for="country">Alliance/Country</label>
+                        <input id="country" type="text" name="country" class="form-control" placeholder="Earth">
                     </div>
                 </div>
             </div>
 
             <div class="form-section">
-                <div class="form-section-title"><span>3</span> Payment</div>
-                <p style="color: #64748b; font-size: 0.9rem; background: #f8fafc; padding: 1rem; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    💳 Payment gateway integration coming soon. Orders will be placed in <strong>pending</strong> status and confirmed manually.
+                <div class="form-section-title"><span>3</span> Essence Transfer</div>
+                <p style="color: var(--m-cyan); font-size: 0.95rem; background: rgba(6,182,212,0.05); padding: 1.25rem; border-radius: 14px; border: 1px dashed rgba(6,182,212,0.3); font-weight: 500; position: relative; z-index: 2;">
+                    <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:text-bottom;margin-right:0.3rem;" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    Payment gateways are still charting safe passage. Orders placed today will enter <strong>Pending</strong> stasis for manual confirmation.
                 </p>
             </div>
 
-            <button type="submit" class="btn-place-order" style="width:100%; margin-top: 0;">
-                🛒 Place Order — $<?= number_format($total ?? 0, 2) ?>
+            <button type="submit" class="btn-place-order">
+                🚀 Initiate Launch — $<?= number_format($total ?? 0, 2) ?>
             </button>
         </form>
     </div>
 
     <!-- Summary -->
     <div class="order-summary">
-        <div class="summary-title">Your Order</div>
+        <div class="summary-title">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Cargo Manifest
+        </div>
 
         <?php foreach ($items as $item): ?>
         <div class="summary-item">
@@ -110,7 +123,7 @@
                 <?php if (!empty($item['image'])): ?>
                     <img src="/uploads/products/<?= htmlspecialchars($item['image']) ?>" alt="">
                 <?php else: ?>
-                    📦
+                    🌌
                 <?php endif; ?>
             </div>
             <div style="flex: 1;">
@@ -123,19 +136,22 @@
 
         <hr class="summary-divider">
 
-        <div class="summary-row"><span>Subtotal</span><span>$<?= number_format($subtotal ?? 0, 2) ?></span></div>
+        <div class="summary-row"><span>Base Value</span><span>$<?= number_format($subtotal ?? 0, 2) ?></span></div>
         <?php if (!empty($coupon) && ($discount ?? 0) > 0): ?>
-        <div class="summary-row discount"><span>Discount (<?= htmlspecialchars($coupon['code']) ?>)</span><span>−$<?= number_format($discount, 2) ?></span></div>
+        <div class="summary-row discount"><span>Enchantment (<?= htmlspecialchars($coupon['code']) ?>)</span><span>−$<?= number_format($discount, 2) ?></span></div>
         <?php endif; ?>
-        <div class="summary-row"><span>Shipping</span><span style="color:#16a34a;font-weight:600;">Free</span></div>
+        <div class="summary-row"><span>Teleportation</span><span style="color:var(--m-cyan);font-weight:800;letter-spacing:1px;font-size:0.8rem;text-transform:uppercase;">Waived</span></div>
 
         <hr class="summary-divider">
 
         <div class="summary-total-row">
-            <span>Total</span>
+            <span>Final Tribute</span>
             <span>$<?= number_format($total ?? 0, 2) ?></span>
         </div>
 
-        <div class="secure-note">🔒 Secured with 256-bit SSL encryption</div>
+        <div class="secure-note">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Secured via Quantum Cryptography
+        </div>
     </div>
 </div>

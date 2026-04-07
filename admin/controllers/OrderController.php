@@ -13,7 +13,6 @@ class OrderController extends Controller
 
     public function __construct()
     {
-        Auth::requireAdmin();
         $this->db = Config::get('database.default') === 'mysql' ? new MysqlDriver() : new FileDriver();
         if (Config::get('database.default') === 'mysql') {
             $this->db->query("CREATE TABLE IF NOT EXISTS `orders` (

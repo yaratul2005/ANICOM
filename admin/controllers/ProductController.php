@@ -14,7 +14,6 @@ class ProductController extends Controller
 
     public function __construct()
     {
-        Auth::requireAdmin();
         $this->db = Config::get('database.default') === 'mysql' ? new MysqlDriver() : new FileDriver();
         if (Config::get('database.default') === 'mysql') {
             // Hot-init table natively

@@ -32,6 +32,22 @@ class StorefrontController extends Controller
         ]);
     }
 
+    public function page($slug)
+    {
+        $page = $this->db->findOne('pages', ['slug' => $slug]);
+        if (!$page) {
+            header("HTTP/1.0 404 Not Found");
+            echo "404 Page Not Found";
+            exit;
+        }
+
+        $this->render('page', [
+            'title' => $page['title'] . ' | ' . Config::get('app.name'),
+            'meta_desc' => $page['meta_desc'],
+            'page' => $page
+        ]);
+    }
+
     public function product($slug)
     {
         $product = $this->db->findOne('products', ['slug' => $slug, 'status' => 'published']);

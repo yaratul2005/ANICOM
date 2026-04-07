@@ -20,12 +20,10 @@
     td { padding: 1rem; border-bottom: 1px dashed rgba(255,255,255,0.05); color: var(--m-text); font-weight: 500; }
     tr:hover td { background: rgba(255,255,255,0.02); }
 
-    .coupon-code { display: inline-block; padding: 0.3rem 0.6rem; background: rgba(59,130,246,0.1); border: 1px solid var(--m-blue); color: #60a5fa; border-radius: 8px; font-family: monospace; font-weight: 800; letter-spacing: 1px; }
+    .route-slug { display: inline-block; padding: 0.3rem 0.6rem; background: rgba(59,130,246,0.1); border: 1px solid var(--m-blue); color: #60a5fa; border-radius: 8px; font-family: monospace; font-size: 0.85rem; }
     
-    .badge-type { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
-    
+    .btn-link { color: var(--m-cyan); text-decoration: none; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.3rem; margin-right: 1rem; }
     .btn-delete { color: #f43f5e; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: color 0.2s; display: inline-flex; align-items: center; gap: 0.3rem; }
-    .btn-delete:hover { color: #fda4af; }
     
     .empty-state { text-align: center; padding: 4rem 2rem; color: var(--m-muted); position: relative; z-index: 2; }
     .empty-state svg { width: 48px; height: 48px; stroke: var(--m-border); fill: none; stroke-width: 1.5; margin-bottom: 1rem; }
@@ -33,12 +31,12 @@
 
 <div class="top-bar">
     <div class="page-title">
-        <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-        Active Enchantments
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Dimensional Pages
     </div>
-    <a href="/admin/coupons/create" class="btn-primary">
+    <a href="/admin/pages/create" class="btn-primary">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Inscribe New Rune
+        Conjure Page
     </a>
 </div>
 
@@ -46,44 +44,38 @@
     <table>
         <thead>
             <tr>
-                <th>Rune Code</th>
-                <th>Power Type</th>
-                <th>Magnitude (Value)</th>
-                <th>Limits (Usage)</th>
-                <th>Expiration Cycle</th>
+                <th>Title</th>
+                <th>Routing Slug</th>
+                <th>SEO Meta</th>
+                <th>Chronology</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <?php if (!empty($coupons)): ?>
-                <?php foreach ($coupons as $coupon): ?>
+            <?php if (!empty($pages)): ?>
+                <?php foreach ($pages as $page): ?>
                 <tr>
-                    <td><span class="coupon-code"><?= htmlspecialchars($coupon['code']) ?></span></td>
-                    <td><span class="badge-type"><?= htmlspecialchars($coupon['type']) ?></span></td>
-                    <td style="font-weight: 800; color: #fff;">
-                        <?= $coupon['type'] === 'percent' ? (float)$coupon['value'] . '%' : '$' . number_format($coupon['value'], 2) ?>
+                    <td style="font-weight: 800; color: #fff;"><?= htmlspecialchars($page['title']) ?></td>
+                    <td><a href="/page/<?= htmlspecialchars($page['slug']) ?>" target="_blank" class="route-slug">/page/<?= htmlspecialchars($page['slug']) ?></a></td>
+                    <td style="color: var(--m-muted); font-size: 0.85rem; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <?= htmlspecialchars($page['meta_desc'] ?: 'No meta description') ?>
                     </td>
                     <td style="color: var(--m-muted); font-size: 0.9rem;">
-                        <?= (int)$coupon['used_count'] ?> / <?= $coupon['usage_limit'] ? (int)$coupon['usage_limit'] : '∞' ?>
-                    </td>
-                    <td style="color: var(--m-muted); font-size: 0.9rem;">
-                        <?= $coupon['expires_at'] ? htmlspecialchars(substr($coupon['expires_at'], 0, 10)) : 'Eternity' ?>
+                        <?= htmlspecialchars(substr($page['created_at'] ?? 'N/A', 0, 10)) ?>
                     </td>
                     <td>
-                        <a href="/admin/coupons/delete?id=<?= urlencode($coupon['id']) ?>" class="btn-delete" onclick="return confirm('Dispel this enchantment forever?');">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            Dispel
-                        </a>
+                        <a href="/admin/pages/create?id=<?= urlencode($page['id']) ?>" class="btn-link">Edit</a>
+                        <a href="/admin/pages/delete?id=<?= urlencode($page['id']) ?>" class="btn-delete" onclick="return confirm('Shatter this dimension forever?');">Dispel</a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="empty-state">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg><br>
-                            <span style="font-size: 1.1rem; font-weight: 800; color:#fff;">No runes inscribed.</span><br>
-                            Create a coupon to offer cosmic discounts.
+                            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg><br>
+                            <span style="font-size: 1.1rem; font-weight: 800; color:#fff;">No pages exist in this realm.</span><br>
+                            Conjure a page like "About Us" or "Privacy Policy".
                         </div>
                     </td>
                 </tr>

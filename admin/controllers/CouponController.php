@@ -13,7 +13,6 @@ class CouponController extends Controller
 
     public function __construct()
     {
-        Auth::requireAdmin();
         $this->db = Config::get('database.default') === 'mysql' ? new MysqlDriver() : new FileDriver();
     }
 

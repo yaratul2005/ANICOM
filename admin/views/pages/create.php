@@ -7,14 +7,14 @@
     .btn-back:hover { color: var(--m-cyan); }
     .btn-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
 
-    .form-panel { background: var(--m-card); border: 1px solid var(--m-border); border-radius: 20px; padding: 2.5rem; max-width: 700px; position: relative; }
+    .form-panel { background: var(--m-card); border: 1px solid var(--m-border); border-radius: 20px; padding: 2.5rem; position: relative; }
     .form-panel::after { content: ''; position: absolute; inset: 4px; border: var(--stitch-border); border-radius: 16px; pointer-events: none; opacity: 0.2; }
     
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; position: relative; z-index: 2; }
     .form-grid.full { grid-template-columns: 1fr; }
     .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
     
-    label { font-size: 0.8rem; font-weight: 800; color: var(--m-muted); text-transform: uppercase; letter-spacing: 1px; }
+    label { font-size: 0.8rem; font-weight: 800; color: var(--m-muted); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 0.4rem; }
     .hint { font-size: 0.8rem; color: #475569; font-weight: 500; }
     
     .form-control {
@@ -24,6 +24,8 @@
     }
     .form-control:focus { outline: none; border-color: var(--m-cyan); background: rgba(0,0,0,0.5); box-shadow: 0 0 0 2px rgba(6,182,212,0.2); }
     
+    textarea.form-control { min-height: 350px; font-family: monospace; font-size: 0.9rem; line-height: 1.5; resize: vertical; }
+
     .btn-submit {
         padding: 1rem 2.5rem; background: var(--gradient-magic); color: #fff;
         border: none; border-radius: 16px; font-family: var(--font-main); font-size: 1rem;
@@ -32,67 +34,50 @@
     }
     .btn-submit::before { content: ''; position: absolute; inset: 2px; border: 1px dashed rgba(255,255,255,0.4); border-radius: 14px; pointer-events: none; }
     .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(139,92,246,0.4); animation: stitch-glow 1.5s infinite alternate; }
-
-    .error-msg { background: rgba(244,63,94,0.1); border: 1px dashed #f43f5e; color: #fda4af; padding: 1rem; border-radius: 12px; font-size: 0.9rem; font-weight: 600; margin-bottom: 1.5rem; position: relative; z-index: 2; }
 </style>
 
 <div class="top-bar">
     <div class="page-title">
         <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-        Inscribe Rune (Coupon)
+        <?= isset($page) ? 'Recalibrate Dimension' : 'Conjure Dimension' ?>
     </div>
-    <a href="/admin/coupons" class="btn-back">
+    <a href="/admin/pages" class="btn-back">
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         Back to Archive
     </a>
 </div>
 
-<?php if (!empty($error)): ?>
-    <div class="error-msg">⚠ <?= htmlspecialchars($error) ?></div>
-<?php endif; ?>
-
 <div class="form-panel">
-    <form method="POST" action="/admin/coupons/create">
-        <div class="form-grid full">
+    <form method="POST" action="/admin/pages/create<?= isset($page) ? '?id='.$page['id'] : '' ?>">
+        <div class="form-grid">
             <div class="form-group">
-                <label>Rune String (Code)</label>
-                <input type="text" name="code" class="form-control" placeholder="e.g. COSMIC20" required style="text-transform: uppercase;">
-                <div class="hint">The specific word customers must invoke in their carts.</div>
+                <label>Page Title</label>
+                <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($page['title'] ?? '') ?>" required>
+            </div>
+            <div class="form-group">
+                <label>Slug (URL Matrix)</label>
+                <input type="text" name="slug" class="form-control" value="<?= htmlspecialchars($page['slug'] ?? '') ?>" placeholder="leave blank to map from title">
             </div>
         </div>
 
-        <div class="form-grid" style="margin-top: 1.5rem;">
+        <div class="form-grid full" style="margin-top: 1.5rem;">
             <div class="form-group">
-                <label>Energy Matrix (Type)</label>
-                <select name="type" class="form-control">
-                    <option value="percent">Percentage Impact (%)</option>
-                    <option value="fixed">Fixed Currency (-$)</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Magnitude (Value)</label>
-                <input type="number" step="0.01" name="value" class="form-control" placeholder="10.00" required>
+                <label>SEO Meta Description</label>
+                <input type="text" name="meta_desc" class="form-control" value="<?= htmlspecialchars($page['meta_desc'] ?? '') ?>">
             </div>
         </div>
 
-        <div class="form-grid" style="margin-top: 1.5rem;">
+        <div class="form-grid full" style="margin-top: 1.5rem;">
             <div class="form-group">
-                <label>Lifespan Limit (Uses)</label>
-                <input type="number" name="usage_limit" class="form-control" placeholder="Leave blank for infinite">
-                <div class="hint">How many times this rune can be invoked globally.</div>
-            </div>
-            
-            <div class="form-group">
-                <label>Expiration Cycle (Date)</label>
-                <input type="date" name="expires_at" class="form-control">
-                <div class="hint">When this enchantment naturally dissipates.</div>
+                <label>HTML Content Fabric</label>
+                <textarea name="content" class="form-control"><?= htmlspecialchars($page['content'] ?? '') ?></textarea>
+                <div class="hint">The raw energetic code comprising this page. Basic HTML rules apply.</div>
             </div>
         </div>
 
         <button type="submit" class="btn-submit">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Seal Enchantment
+            <?= isset($page) ? 'Update Architecture' : 'Seal Dimension' ?>
         </button>
     </form>
 </div>

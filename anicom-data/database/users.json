@@ -1,0 +1,9 @@
+[
+    {
+        "id": 1,
+        "email": "ratul41g@gmail.com",
+        "name": "Ratul",
+        "password": "$2y$10$9ojLR3D2kVC/1S..mMvasOBghSJiX6WL05iAMUnW/3k4TezkLZ9/.",
+        "role": "admin"
+    }
+]

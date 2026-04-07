@@ -1,146 +1,164 @@
 <style>
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
-    .stat-card { display: flex; flex-direction: column; gap: 0.4rem; position: relative; overflow: hidden; }
-    .stat-card::before {
-        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-        background: linear-gradient(90deg, #6366f1, #c084fc);
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    
+    .stat-card {
+        background: var(--m-card); border: 1px solid var(--m-border); border-radius: 20px;
+        padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem;
+        transition: all 0.3s; position: relative; overflow: hidden;
     }
-    .stat-val { font-size: 2.2rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
-    .stat-label { color: #64748b; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.8px; }
-    .stat-sub { font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem; }
-    .badge-pending { display: inline-block; background: #fef3c7; color: #92400e; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; }
-    .badge-ok { display: inline-block; background: #dcfce7; color: #166534; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; }
+    .stat-card::after { content: ''; position: absolute; inset: 3px; border: var(--stitch-border); border-radius: 17px; pointer-events: none; opacity: 0.15; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-glow); border-color: var(--m-purple); }
+    
+    .stat-icon {
+        width: 54px; height: 54px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; position: relative;
+    }
+    .stat-icon svg { width: 26px; height: 26px; stroke: #fff; fill: none; stroke-width: 2; }
+    .stat-icon.rev { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 15px rgba(16,185,129,0.3); }
+    .stat-icon.ord { background: linear-gradient(135deg, var(--m-blue), #2563eb); box-shadow: 0 0 15px rgba(59,130,246,0.3); }
+    .stat-icon.cus { background: var(--gradient-magic); box-shadow: var(--shadow-glow); }
+    .stat-icon.pro { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 15px rgba(245,158,11,0.3); }
 
-    .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-    @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+    .stat-info { display: flex; flex-direction: column; gap: 0.2rem; position: relative; z-index: 2; }
+    .stat-label { font-size: 0.8rem; font-weight: 800; color: var(--m-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-val { font-size: 1.6rem; font-weight: 900; color: #fff; }
 
-    .section-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0 0 1.25rem 0; display: flex; align-items: center; gap: 0.5rem; }
-    .section-title span { width: 8px; height: 8px; border-radius: 50%; background: #6366f1; display: inline-block; }
+    /* Layout for tables/charts */
+    .dashboard-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+    @media (max-width: 1024px) { .dashboard-layout { grid-template-columns: 1fr; } }
+    
+    .panel { background: var(--m-card); border: 1px solid var(--m-border); border-radius: 20px; padding: 1.5rem; position: relative; }
+    .panel::after { content: ''; position: absolute; inset: 4px; border: var(--stitch-border); border-radius: 16px; pointer-events: none; opacity: 0.1; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; position: relative; z-index: 2; }
+    .panel-title { font-size: 1.1rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    .panel-title svg { stroke: var(--m-cyan); width: 20px; height: 20px; }
 
-    /* Orders table */
-    .orders-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    .orders-table th { text-align: left; padding: 0.6rem 0.75rem; color: #64748b; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e2e8f0; }
-    .orders-table td { padding: 0.75rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: middle; }
-    .orders-table tr:last-child td { border-bottom: none; }
-    .orders-table tr:hover td { background: #f8fafc; }
-    .status-badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-shipped { background: #dbeafe; color: #1e40af; }
-    .status-completed { background: #dcfce7; color: #166534; }
-    .status-cancelled { background: #fee2e2; color: #991b1b; }
-
-    /* Top products bar chart */
-    .bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.85rem; }
-    .bar-label { font-size: 0.82rem; color: #475569; font-weight: 500; width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
-    .bar-track { flex: 1; background: #f1f5f9; border-radius: 4px; height: 8px; overflow: hidden; }
-    .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #6366f1, #c084fc); transition: width 0.8s ease; }
-    .bar-count { font-size: 0.78rem; font-weight: 700; color: #6366f1; width: 28px; text-align: right; flex-shrink: 0; }
-
-    .empty-state { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.9rem; }
-    .empty-state svg { width: 40px; height: 40px; margin-bottom: 0.75rem; opacity: 0.4; }
-
-    .quick-links { display: flex; flex-direction: column; gap: 0.5rem; }
-    .quick-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 10px; text-decoration: none; color: #475569; background: #f8fafc; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; border: 1px solid #e2e8f0; }
-    .quick-link:hover { background: #ede9fe; color: #6366f1; border-color: #c4b5fd; transform: translateX(3px); }
-    .quick-link-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; background: #ede9fe; }
+    /* Orders Table */
+    .table-responsive { overflow-x: auto; position: relative; z-index: 2; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 0.8rem 1rem; font-size: 0.75rem; font-weight: 800; color: var(--m-muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px dashed rgba(255,255,255,0.05); }
+    td { padding: 1rem; border-bottom: 1px dashed rgba(255,255,255,0.05); color: var(--m-text); font-size: 0.9rem; font-weight: 500; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    
+    .badge { display: inline-block; padding: 0.3rem 0.6rem; border-radius: 10px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+    .bg-green { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+    .bg-yellow { background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    
+    /* Cosmic Bar Chart */
+    .chart-container { display: flex; flex-direction: column; gap: 1rem; position: relative; z-index: 2; }
+    .chart-row { display: flex; align-items: center; gap: 1rem; }
+    .chart-label { width: 80px; font-size: 0.8rem; font-weight: 600; color: var(--m-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chart-bar-wrap { flex: 1; min-width: 0; background: rgba(0,0,0,0.3); height: 12px; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+    .chart-bar { height: 100%; border-radius: 10px; transition: width 1s ease-out; box-shadow: inset 0 0 5px rgba(255,255,255,0.5); }
+    .chart-value { width: 40px; text-align: right; font-size: 0.85rem; font-weight: 800; color: #fff; }
 </style>
 
-<h2 class="page-title">Dashboard</h2>
-
-<!-- Stats Row -->
-<div class="stats-grid">
-    <div class="card stat-card">
-        <span class="stat-label">Total Revenue</span>
-        <span class="stat-val">$<?= number_format($totalRevenue ?? 0, 2) ?></span>
-        <span class="stat-sub"><?= $totalOrders ?? 0 ?> total orders</span>
+<div class="top-bar">
+    <div class="page-title">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Command Center
     </div>
-    <div class="card stat-card">
-        <span class="stat-label">Pending Orders</span>
-        <span class="stat-val"><?= $pendingOrders ?? 0 ?></span>
-        <span class="stat-sub"><span class="badge-pending">Needs action</span></span>
-    </div>
-    <div class="card stat-card">
-        <span class="stat-label">Products</span>
-        <span class="stat-val"><?= $totalProducts ?? 0 ?></span>
-        <span class="stat-sub">Published in store</span>
-    </div>
-    <div class="card stat-card">
-        <span class="stat-label">Customers</span>
-        <span class="stat-val"><?= $totalCustomers ?? 0 ?></span>
-        <span class="stat-sub">Registered accounts</span>
-    </div>
-    <div class="card stat-card">
-        <span class="stat-label">Active Coupons</span>
-        <span class="stat-val"><?= $activeCoupons ?? 0 ?></span>
-        <span class="stat-sub"><span class="badge-ok">Live</span></span>
+    <div class="top-actions">
+        <a href="/admin/products/create" class="btn-primary">
+            <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Forge Artifact
+        </a>
     </div>
 </div>
 
-<!-- Main Grid -->
-<div class="dash-grid">
-    <!-- Recent Orders -->
-    <div class="card">
-        <div class="section-title"><span></span> Recent Orders</div>
-        <?php if (!empty($recentOrders)): ?>
-        <table class="orders-table">
-            <thead>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php foreach ($recentOrders as $order): ?>
-                <tr>
-                    <td style="font-family: monospace; font-size: 0.8rem; color: #6366f1;"><?= htmlspecialchars(substr($order['id'], 0, 16)) ?>&hellip;</td>
-                    <td><?= htmlspecialchars($order['customer_name'] ?? '—') ?></td>
-                    <td><strong>$<?= number_format($order['total'] ?? 0, 2) ?></strong></td>
-                    <td><span class="status-badge status-<?= htmlspecialchars($order['status'] ?? 'pending') ?>"><?= htmlspecialchars($order['status'] ?? 'pending') ?></span></td>
-                    <td style="color: #94a3b8;"><?= htmlspecialchars(substr($order['created_at'] ?? '', 0, 10)) ?></td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php else: ?>
-        <div class="empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            <p>No orders yet. They'll appear here once customers start buying.</p>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon rev"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+        <div class="stat-info">
+            <span class="stat-label">Cosmic Gold</span>
+            <span class="stat-val">$<?= number_format($stats['revenue'], 2) ?></span>
         </div>
-        <?php endif; ?>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon ord"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></div>
+        <div class="stat-info">
+            <span class="stat-label">Orders</span>
+            <span class="stat-val"><?= number_format($stats['orders']) ?></span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon cus"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+        <div class="stat-info">
+            <span class="stat-label">Entities</span>
+            <span class="stat-val"><?= number_format($stats['customers']) ?></span>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon pro"><svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></div>
+        <div class="stat-info">
+            <span class="stat-label">Artifacts</span>
+            <span class="stat-val"><?= number_format($stats['products']) ?></span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-layout">
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> Recent Transmissions</div>
+            <a href="/admin/orders" class="btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">View All</a>
+        </div>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Entity</th>
+                        <th>Chronology</th>
+                        <th>Status</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($recent_orders)): ?>
+                        <?php foreach($recent_orders as $order): ?>
+                        <tr>
+                            <td style="font-family:monospace; color:var(--m-cyan);">#<?= htmlspecialchars($order['id']) ?></td>
+                            <td style="font-weight:700; color:#fff;"><?= htmlspecialchars($order['customer_name'] ?? 'Guest') ?></td>
+                            <td style="color:var(--m-muted); font-size:0.8rem;"><?= htmlspecialchars(substr($order['created_at'], 0, 10)) ?></td>
+                            <td><span class="badge <?= $order['status'] === 'completed' ? 'bg-green' : 'bg-yellow' ?>"><?= htmlspecialchars($order['status']) ?></span></td>
+                            <td style="font-weight:800;">$<?= number_format($order['total'], 2) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" style="text-align:center; padding: 3rem; color:var(--m-muted);">No transmissions detected.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Right Column -->
-    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <!-- Top Products -->
-        <div class="card">
-            <div class="section-title"><span></span> Top Products</div>
-            <?php if (!empty($topProducts)):
-                $maxSales = max($topProducts);
-                foreach ($topProducts as $name => $qty):
-                    $pct = $maxSales > 0 ? round(($qty / $maxSales) * 100) : 0;
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg> Top Artifacts</div>
+        </div>
+        
+        <div class="chart-container">
+            <?php 
+            $maxQty = !empty($top_products) ? max(array_column($top_products, 'total_qty')) : 1;
+            if (!empty($top_products)): 
+                $colors = ['linear-gradient(90deg, #3b82f6, #06b6d4)', 'linear-gradient(90deg, #8b5cf6, #d946ef)', 'linear-gradient(90deg, #f59e0b, #fbbf24)', 'linear-gradient(90deg, #10b981, #34d399)', 'linear-gradient(90deg, #ec4899, #f43f5e)'];
+                foreach ($top_products as $idx => $tp):
+                    $pct = ($tp['total_qty'] / $maxQty) * 100;
+                    $bg = $colors[$idx % count($colors)];
             ?>
-            <div class="bar-row">
-                <span class="bar-label" title="<?= htmlspecialchars($name) ?>"><?= htmlspecialchars($name) ?></span>
-                <div class="bar-track"><div class="bar-fill" style="width: <?= $pct ?>%"></div></div>
-                <span class="bar-count"><?= $qty ?></span>
+            <div class="chart-row">
+                <div class="chart-label" title="<?= htmlspecialchars($tp['title']) ?>"><?= htmlspecialchars($tp['title']) ?></div>
+                <div class="chart-bar-wrap">
+                    <div class="chart-bar" style="width: <?= $pct ?>%; background: <?= $bg ?>;"></div>
+                </div>
+                <div class="chart-value"><?= (int)$tp['total_qty'] ?></div>
             </div>
             <?php endforeach; else: ?>
-            <div class="empty-state"><p>No sales data yet.</p></div>
+                <div style="text-align:center; color:var(--m-muted); padding:2rem 0;">Awaiting artifact data.</div>
             <?php endif; ?>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="card">
-            <div class="section-title"><span></span> Quick Actions</div>
-            <div class="quick-links">
-                <a href="/admin/products/create" class="quick-link"><span class="quick-link-icon">📦</span> Add New Product</a>
-                <a href="/admin/coupons/create" class="quick-link"><span class="quick-link-icon">🏷️</span> Create Coupon</a>
-                <a href="/admin/orders" class="quick-link"><span class="quick-link-icon">🛒</span> View All Orders</a>
-                <a href="/admin/settings" class="quick-link"><span class="quick-link-icon">⚙️</span> Store Settings</a>
-            </div>
         </div>
     </div>
 </div>

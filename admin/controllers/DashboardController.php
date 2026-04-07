@@ -13,7 +13,6 @@ class DashboardController extends Controller
 
     public function __construct()
     {
-        Auth::requireAdmin();
         $this->db = Config::get('database.default') === 'mysql' ? new MysqlDriver() : new FileDriver();
     }
 
@@ -47,15 +46,21 @@ class DashboardController extends Controller
         usort($orders, fn($a, $b) => strcmp($b['created_at'] ?? '', $a['created_at'] ?? ''));
         $recentOrders = array_slice($orders, 0, 5);
 
+        $formattedTopProducts = [];
+        foreach ($topProducts as $t => $qty) {
+            $formattedTopProducts[] = ['title' => $t, 'total_qty' => $qty];
+        }
+
         $this->renderAdmin('dashboard', [
             'title'          => 'ANICOM | Dashboard',
-            'totalRevenue'   => $totalRevenue,
-            'totalOrders'    => $totalOrders,
-            'pendingOrders'  => $pendingOrders,
-            'totalProducts'  => $totalProducts,
-            'totalCustomers' => $totalCustomers,
-            'topProducts'    => $topProducts,
-            'recentOrders'   => $recentOrders,
+            'stats'          => [
+                'revenue'   => $totalRevenue,
+                'orders'    => $totalOrders,
+                'customers' => $totalCustomers,
+                'products'  => $totalProducts
+            ],
+            'top_products'   => $formattedTopProducts,
+            'recent_orders'  => $recentOrders,
             'activeCoupons'  => count(array_filter($coupons, fn($c) => ($c['active'] ?? 0) == 1)),
         ]);
     }
