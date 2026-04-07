@@ -11,13 +11,19 @@
     .form-section-title { font-size: 1.1rem; font-weight: 800; color: #fff; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; letter-spacing: 0.5px; position: relative; z-index: 2; }
     .form-section-title span { background: var(--gradient-magic); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 900; box-shadow: 0 0 10px rgba(217,70,239,0.3); border: 1px dashed rgba(255,255,255,0.5); }
     
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; position: relative; z-index: 2; }
-    .form-grid .full { grid-column: 1 / -1; }
+    .form-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; position: relative; z-index: 2; }
     .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
     label { font-size: 0.8rem; font-weight: 800; color: var(--m-muted); text-transform: uppercase; letter-spacing: 1px; }
     .form-control { padding: 0.85rem 1.25rem; border: 1px solid var(--m-border); border-radius: 12px; font-family: var(--font-main); font-size: 1rem; color: #fff; background: rgba(0,0,0,0.3); transition: all 0.3s; width: 100%; font-weight: 500; }
     .form-control:focus { outline: none; border-color: var(--m-cyan); background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(6,182,212,0.15); }
     .form-control::placeholder { color: #475569; }
+
+    .cod-box { background: rgba(16,185,129,0.1); border: 1px dashed #10b981; border-radius: 14px; padding: 1.5rem; display: flex; align-items: center; gap: 1rem; position: relative; z-index: 2; margin-top: 1rem; }
+    .cod-icon { width: 40px; height: 40px; background: rgba(16,185,129,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #34d399; }
+    .cod-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .cod-text { flex: 1; }
+    .cod-title { font-weight: 800; color: #34d399; font-size: 1.05rem; }
+    .cod-desc { font-size: 0.85rem; color: var(--m-muted); font-weight: 500; margin-top: 0.2rem; }
 
     /* Summary */
     .order-summary { background: rgba(22,26,45,0.8); backdrop-filter: blur(12px); border: 1px solid var(--m-border); border-radius: 24px; padding: 2rem; position: sticky; top: 100px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
@@ -49,6 +55,18 @@
     .secure-note svg { width: 14px; height: 14px; stroke: var(--m-cyan); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 
+<!-- Pixel Injection for Initiate Checkout -->
+<script>
+    if (typeof fbq === 'function') {
+        fbq('track', 'InitiateCheckout', {
+            value: <?= (float)($total ?? 0) ?>,
+            currency: 'USD',
+            content_ids: <?= json_encode(array_column($items, 'id')) ?>,
+            content_type: 'product'
+        });
+    }
+</script>
+
 <h1>Finalize Ritual</h1>
 <p class="checkout-subtitle">Secure the coordinates for your cosmic delivery.</p>
 
@@ -57,55 +75,40 @@
     <div>
         <form method="POST" action="/checkout">
             <div class="form-section">
-                <div class="form-section-title"><span>1</span> Identity Core</div>
+                <div class="form-section-title"><span>1</span> Delivery Operations</div>
                 <div class="form-grid">
-                    <div class="form-group full">
-                        <label for="name">Full Name</label>
-                        <input id="name" type="text" name="name" class="form-control" value="<?= htmlspecialchars(\Core\Customer::current()['name'] ?? $_POST['name'] ?? '') ?>" placeholder="Jane Doe" required>
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input id="name" type="text" name="name" class="form-control" value="<?= htmlspecialchars(\Core\Customer::current()['name'] ?? $_POST['name'] ?? '') ?>" placeholder="First & Last Name" required>
                     </div>
-                    <div class="form-group full">
-                        <label for="email">Hyperlink Address (Email)</label>
-                        <input id="email" type="email" name="email" class="form-control" value="<?= htmlspecialchars(\Core\Customer::current()['email'] ?? $_POST['email'] ?? '') ?>" placeholder="jane@cosmos.net" required>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input id="phone" type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>" placeholder="+1 555 000 0000" required>
                     </div>
-                    <div class="form-group full">
-                        <label for="phone">Comlink Frequency (Optional)</label>
-                        <input id="phone" type="tel" name="phone" class="form-control" value="<?= htmlspecialchars($_POST['phone'] ?? '') ?>" placeholder="+1 555 000 0000">
+                    <div class="form-group">
+                        <label for="address">Customer Address</label>
+                        <textarea id="address" name="address" class="form-control" style="min-height: 100px; resize: vertical;" placeholder="Full Street Address, City, Region..." required><?= htmlspecialchars($_POST['address'] ?? '') ?></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="form-section">
-                <div class="form-section-title"><span>2</span> Spatial Coordinates</div>
-                <div class="form-grid">
-                    <div class="form-group full">
-                        <label for="address">Street Matrix</label>
-                        <input id="address" type="text" name="address" class="form-control" placeholder="123 Nebula Sector" required>
+                <div class="form-section-title"><span>2</span> Payment Method</div>
+                
+                <div class="cod-box">
+                    <div class="cod-icon">
+                        <svg viewBox="0 0 24 24"><path d="M12 1v22"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                     </div>
-                    <div class="form-group">
-                        <label for="city">Sector/City</label>
-                        <input id="city" type="text" name="city" class="form-control" placeholder="New York" required>
+                    <div class="cod-text">
+                        <div class="cod-title">Cash on Delivery (COD)</div>
+                        <div class="cod-desc">Pay physically with cosmos coins when the artifact arrives at your door.</div>
                     </div>
-                    <div class="form-group">
-                        <label for="zip">Space-Time Code</label>
-                        <input id="zip" type="text" name="zip" class="form-control" placeholder="10001">
-                    </div>
-                    <div class="form-group full">
-                        <label for="country">Alliance/Country</label>
-                        <input id="country" type="text" name="country" class="form-control" placeholder="Earth">
-                    </div>
+                    <input type="hidden" name="payment_method" value="COD">
                 </div>
             </div>
 
-            <div class="form-section">
-                <div class="form-section-title"><span>3</span> Essence Transfer</div>
-                <p style="color: var(--m-cyan); font-size: 0.95rem; background: rgba(6,182,212,0.05); padding: 1.25rem; border-radius: 14px; border: 1px dashed rgba(6,182,212,0.3); font-weight: 500; position: relative; z-index: 2;">
-                    <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:text-bottom;margin-right:0.3rem;" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                    Payment gateways are still charting safe passage. Orders placed today will enter <strong>Pending</strong> stasis for manual confirmation.
-                </p>
-            </div>
-
-            <button type="submit" class="btn-place-order">
-                🚀 Initiate Launch — $<?= number_format($total ?? 0, 2) ?>
+            <button type="submit" class="btn-place-order" onclick="if(typeof fbq === 'function'){fbq('track', 'AddPaymentInfo');}">
+                🚀 Confirm Order — $<?= number_format($total ?? 0, 2) ?>
             </button>
         </form>
     </div>
@@ -127,7 +130,7 @@
                 <?php endif; ?>
             </div>
             <div style="flex: 1;">
-                <div class="s-name"><?= htmlspecialchars($item['title']) ?></div>
+                <div class="s-name"><?= htmlspecialchars($item['title'] ?? 'Unknown Artifact') ?></div>
                 <div class="s-qty">Qty: <?= (int)($item['quantity'] ?? 1) ?></div>
             </div>
             <div class="s-price">$<?= number_format(($item['price'] ?? 0) * ($item['quantity'] ?? 1), 2) ?></div>

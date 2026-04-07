@@ -2,9 +2,14 @@
     .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
     @media (max-width: 900px) { .product-layout { grid-template-columns: 1fr; gap: 3rem; } }
 
-    .product-img-main { width: 100%; border-radius: 28px; overflow: hidden; background: rgba(0,0,0,0.3); border: 1px solid var(--m-border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+    .product-img-main { width: 100%; border-radius: 28px; overflow: hidden; background: rgba(0,0,0,0.3); border: 1px solid var(--m-border); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s; }
     .product-img-main img { width: 100%; height: 100%; object-fit: cover; }
     .product-img-main::after { content:''; position:absolute; inset:8px; border: var(--stitch-border); border-radius: 20px; pointer-events:none; opacity: 0.5; }
+
+    .media-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 1rem; }
+    .media-thumb { border-radius: 12px; overflow: hidden; aspect-ratio: 1; border: 1px solid var(--m-border); cursor: pointer; opacity: 0.6; transition: all 0.2s; }
+    .media-thumb:hover, .media-thumb.active { opacity: 1; border-color: var(--m-cyan); }
+    .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
     .breadcrumb { display: flex; align-items: center; gap: 0.75rem; color: var(--m-muted); font-size: 0.85rem; margin-bottom: 2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     .breadcrumb a { color: var(--m-cyan); text-decoration: none; transition: color 0.2s; }
@@ -14,8 +19,9 @@
     .product-category { font-size: 0.8rem; font-weight: 900; color: var(--m-pink); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
     .product-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -1px; margin-bottom: 1.5rem; text-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     
-    .product-price { font-size: 2.2rem; font-weight: 900; color: #fff; margin-bottom: 2rem; display: flex; align-items: flex-start; gap: 0.3rem; }
-    .product-price .currency { font-size: 1.2rem; margin-top: 0.4rem; color: var(--m-purple); }
+    .product-price { font-size: 2.2rem; font-weight: 900; color: #fff; margin-bottom: 2rem; display: flex; align-items: flex-end; gap: 0.75rem; }
+    .product-price .currency { font-size: 1.2rem; color: var(--m-purple); margin-bottom:0.4rem; }
+    .price-discounted { color: var(--m-muted); text-decoration: line-through; font-size: 1.2rem; font-weight: 600; opacity: 0.7; margin-bottom:0.3rem;}
 
     .product-desc { color: var(--m-text); line-height: 1.8; font-size: 1.05rem; margin-bottom: 2.5rem; position: relative; padding-left: 1.5rem; }
     .product-desc::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gradient-magic); border-radius: 3px; }
@@ -53,13 +59,33 @@
 <div class="product-layout">
     <!-- Image block -->
     <div>
-        <div class="product-img-main">
-            <?php if (!empty($product['image'])): ?>
-                <img src="/uploads/products/<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['title']) ?>">
+        <?php 
+        $media = [];
+        if (!empty($product['media'])) {
+            $media = json_decode($product['media'], true);
+        } elseif (!empty($product['image'])) {
+            $media = [$product['image']];
+        }
+        $mainImage = !empty($media) ? $media[0] : null;
+        ?>
+
+        <div class="product-img-main" id="main-view">
+            <?php if ($mainImage): ?>
+                <img src="/uploads/products/<?= htmlspecialchars($mainImage) ?>" id="main-img" alt="<?= htmlspecialchars($product['title']) ?>">
             <?php else: ?>
                 <span style="font-size: 4rem; opacity: 0.2;">🌌</span>
             <?php endif; ?>
         </div>
+
+        <?php if (count($media) > 1): ?>
+        <div class="media-gallery">
+            <?php foreach ($media as $idx => $m): ?>
+            <div class="media-thumb <?= $idx === 0 ? 'active' : '' ?>" onclick="switchMedia('<?= htmlspecialchars($m) ?>', this)">
+                <img src="/uploads/products/<?= htmlspecialchars($m) ?>" alt="Gallery <?= $idx ?>">
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Info block -->
@@ -74,7 +100,14 @@
         <h1 class="product-title"><?= htmlspecialchars($product['title']) ?></h1>
 
         <div class="product-price">
-            <span class="currency">$</span><?= number_format($product['price'] ?? 0, 2) ?>
+            <?php 
+            $price = (float)($product['price'] ?? 0);
+            $compare = (float)($product['compare_at_price'] ?? 0);
+            ?>
+            <?php if ($compare > $price && $compare > 0): ?>
+                <span class="price-discounted">$<?= number_format($compare, 2) ?></span>
+            <?php endif; ?>
+            <span><span class="currency">$</span><?= number_format($price, 2) ?></span>
         </div>
 
         <?php if (!empty($product['description'])): ?>
@@ -141,9 +174,15 @@
 <?php endif; ?>
 
 <script>
+<script>
 function adjustQty(delta) {
     const input = document.getElementById('qty-input');
     const val = Math.max(1, Math.min(99, (parseInt(input.value) || 1) + delta));
     input.value = val;
+}
+function switchMedia(filename, thumbEl) {
+    document.getElementById('main-img').src = '/uploads/products/' + filename;
+    document.querySelectorAll('.media-thumb').forEach(el => el.classList.remove('active'));
+    thumbEl.classList.add('active');
 }
 </script>

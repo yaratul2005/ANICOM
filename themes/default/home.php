@@ -46,8 +46,9 @@
     .card-category { font-size: 0.75rem; font-weight: 800; color: var(--m-cyan); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.4rem; }
     .card-title { font-size: 1.1rem; font-weight: 800; color: #fff; text-decoration: none; line-height: 1.4; transition: color 0.2s; }
     .card-title:hover { color: var(--m-pink); }
-    .card-price { font-size: 1.35rem; font-weight: 900; color: var(--m-text); margin-top: auto; padding-top: 0.75rem; display: flex; align-items: baseline; gap: 0.4rem; }
+    .card-price { font-size: 1.35rem; font-weight: 900; color: var(--m-text); margin-top: auto; padding-top: 0.75rem; display: flex; align-items: baseline; gap: 0.5rem; flex-wrap:wrap; }
     .card-price .currency { font-size: 0.9rem; color: var(--m-purple); }
+    .card-price-slashed { font-size: 1rem; color: var(--m-muted); text-decoration: line-through; opacity: 0.7; font-weight: 600; }
 
     .btn-add { width: 100%; padding: 0.85rem; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--m-border); border-radius: 16px; font-family: var(--font-main); font-size: 0.95rem; font-weight: 800; cursor: pointer; transition: all 0.3s; margin-top: 1rem; position: relative; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
     .btn-add:hover { background: var(--gradient-magic); border-color: transparent; transform: translateY(-2px); box-shadow: var(--shadow-magic); }
@@ -119,7 +120,14 @@
                     <?= htmlspecialchars($product['title']) ?>
                 </a>
                 <div class="card-price">
-                    <span class="currency">$</span><?= number_format($product['price'] ?? 0, 2) ?>
+                    <?php 
+                    $price = (float)($product['price'] ?? 0);
+                    $compare = (float)($product['compare_at_price'] ?? 0);
+                    if ($compare > $price && $compare > 0): 
+                    ?>
+                        <span class="card-price-slashed">$<?= number_format($compare, 2) ?></span>
+                    <?php endif; ?>
+                    <span><span class="currency">$</span><?= number_format($price, 2) ?></span>
                 </div>
                 <form method="POST" action="/cart/add" style="margin-top:auto;">
                     <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">

@@ -138,13 +138,14 @@ class StorefrontController extends Controller
             $orderData = [
                 'id'             => uniqid('ord_'),
                 'customer_name'  => $_POST['name'] ?? '',
-                'customer_email' => $_POST['email'] ?? '',
+                'customer_address'=> $_POST['address'] ?? '',
+                'customer_phone' => $_POST['phone'] ?? '',
                 'total'          => $total,
                 'subtotal'       => $subtotal,
                 'discount'       => $discount,
                 'coupon_code'    => $coupon['code'] ?? null,
                 'items'          => json_encode(Cart::getItems()),
-                'status'         => 'pending',
+                'status'         => 'pending_verification',
                 'created_at'     => date('Y-m-d H:i:s'),
             ];
 
@@ -152,7 +153,8 @@ class StorefrontController extends Controller
                 $this->db->query("CREATE TABLE IF NOT EXISTS `orders` (
                     `id` VARCHAR(50) PRIMARY KEY,
                     `customer_name` VARCHAR(255),
-                    `customer_email` VARCHAR(255),
+                    `customer_address` TEXT,
+                    `customer_phone` VARCHAR(50),
                     `total` DECIMAL(10,2),
                     `subtotal` DECIMAL(10,2),
                     `discount` DECIMAL(10,2),
@@ -171,8 +173,7 @@ class StorefrontController extends Controller
                 Coupon::removeFromSession();
             }
 
-            $mailContent = "Your order <strong>{$orderData['id']}</strong> for <strong>$" . number_format($total, 2) . "</strong> has been received.<br>You will be notified once it ships.";
-            Mailer::send($orderData['customer_email'], 'Order Confirmation - ' . Config::get('app.name'), $mailContent);
+            // Email logic removed for purely COD-based physical checkout funnel
 
             Cart::clear();
 

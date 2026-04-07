@@ -83,13 +83,13 @@ unset($_SESSION['coupon_error'], $_SESSION['coupon_success']);
         <div class="cart-item">
             <div class="item-img">
                 <?php if (!empty($item['image'])): ?>
-                    <img src="/uploads/products/<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['title']) ?>">
+                    <img src="/uploads/products/<?= htmlspecialchars($item['image']) ?>" alt="<?= htmlspecialchars($item['title'] ?? 'Product') ?>">
                 <?php else: ?>
                     🌌
                 <?php endif; ?>
             </div>
             <div>
-                <div class="item-name"><?= htmlspecialchars($item['title']) ?></div>
+                <div class="item-name"><?= htmlspecialchars($item['title'] ?? 'Unknown Artifact') ?></div>
                 <div class="item-price"><span style="color:var(--m-muted);font-size:0.8rem;">$</span><?= number_format($item['price'] ?? 0, 2) ?> <span style="font-size:0.75rem; color:var(--m-muted); font-weight:500;">/ piece</span></div>
                 <div class="item-qty">Quantity: <?= (int)($item['quantity'] ?? 1) ?></div>
             </div>
