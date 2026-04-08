@@ -64,6 +64,7 @@ $router->get('/categories/delete', [\Admin\Controllers\CategoryController::class
 // Orders
 $router->get('/orders', [\Admin\Controllers\OrderController::class, 'index']);
 $router->get('/orders/status', [\Admin\Controllers\OrderController::class, 'status']);
+$router->post('/orders/verify', [\Admin\Controllers\OrderController::class, 'verify']);
 
 // Coupons
 $router->get('/coupons', [\Admin\Controllers\CouponController::class, 'index']);

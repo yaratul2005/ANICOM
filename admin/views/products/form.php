@@ -66,7 +66,7 @@
         <div class="form-grid full">
             <div class="form-group">
                 <label>Artifact Description</label>
-                <textarea name="description" class="form-control" placeholder="A rich, compelling description of this item..."></textarea>
+                <textarea name="description" id="description-editor" class="form-control" placeholder="A rich, compelling description of this item..."></textarea>
             </div>
         </div>
 
@@ -109,3 +109,21 @@
         </button>
     </form>
 </div>
+
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+tinymce.init({
+    selector: '#description-editor',
+    height: 300,
+    menubar: false,
+    plugins: 'lists link image code',
+    toolbar: 'bold italic underline | bullist numlist | link image | code',
+    skin: 'oxide-dark',
+    content_css: 'dark',
+    setup: function (editor) {
+        editor.on('change', function () {
+            editor.save();
+        });
+    }
+});
+</script>

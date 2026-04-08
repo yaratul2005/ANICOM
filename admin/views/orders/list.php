@@ -30,11 +30,14 @@
                     <td style="padding: 1rem 1.5rem; font-weight: 600;">$<?= number_format((float)($o['total'] ?? 0), 2) ?></td>
                     <td style="padding: 1rem 1.5rem; color: #64748b; font-size: 0.9rem;"><?= htmlspecialchars($o['created_at'] ?? 'N/A') ?></td>
                     <td style="padding: 1rem 1.5rem;">
-                        <span style="padding: 0.25rem 0.75rem; background: <?= ($o['status'] === 'paid' || $o['status'] === 'shipped') ? '#dcfce7' : '#fef9c3' ?>; color: <?= ($o['status'] === 'paid' || $o['status'] === 'shipped') ? '#166534' : '#854d0e' ?>; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-transform: capitalize;">
+                        <span style="padding: 0.25rem 0.75rem; background: <?= ($o['status'] === 'paid' || $o['status'] === 'shipped' || $o['status'] === 'completed') ? '#dcfce7' : '#fef9c3' ?>; color: <?= ($o['status'] === 'paid' || $o['status'] === 'shipped' || $o['status'] === 'completed') ? '#166534' : '#854d0e' ?>; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-transform: capitalize;">
                             <?= htmlspecialchars($o['status'] ?? 'pending', ENT_QUOTES) ?>
                         </span>
                     </td>
                     <td style="padding: 1rem 1.5rem; text-align: right;">
+                        <?php if(($o['status'] ?? 'pending') === 'pending_verification'): ?>
+                            <button onclick="verifyOrder('<?= $o['id'] ?>', <?= (float)($o['total'] ?? 0) ?>)" style="color: #059669; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 1rem; background: none; border: none; cursor: pointer;">Verify & Complete</button>
+                        <?php endif; ?>
                         <?php if(($o['status'] ?? 'pending') === 'pending'): ?>
                             <a href="/admin/orders/status?id=<?= $o['id'] ?>&status=paid" style="color: #6366f1; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 1rem;">Mark Paid</a>
                         <?php endif; ?>
@@ -48,3 +51,37 @@
         </tbody>
     </table>
 </div>
+
+<script>
+function verifyOrder(orderId, total) {
+    if (confirm('Are you sure you want to verify and complete this order? This will trigger the purchase analytics.')) {
+        // Update order status
+        fetch('/admin/orders/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: orderId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Inject purchase pixel
+                if (typeof fbq === 'function') {
+                    fbq('track', 'Purchase', {
+                        value: total,
+                        currency: 'USD'
+                    });
+                }
+                // Reload page to update status
+                location.reload();
+            } else {
+                alert('Failed to verify order: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            alert('Error verifying order: ' + error.message);
+        });
+    }
+}
+</script>

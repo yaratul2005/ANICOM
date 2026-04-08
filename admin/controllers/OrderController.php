@@ -45,4 +45,21 @@ class OrderController extends Controller
         header('Location: /admin/orders');
         exit;
     }
+
+    public function verify()
+    {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = $input['id'] ?? null;
+        
+        if ($id) {
+            $order = $this->db->findOne('orders', ['id' => $id]);
+            if ($order && $order['status'] === 'pending_verification') {
+                $this->db->update('orders', $id, ['status' => 'completed']);
+                echo json_encode(['success' => true]);
+                return;
+            }
+        }
+        
+        echo json_encode(['success' => false, 'message' => 'Order not found or already verified']);
+    }
 }

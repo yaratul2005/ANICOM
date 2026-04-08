@@ -74,7 +74,18 @@ class StorefrontController extends Controller
 
     public function cart()
     {
-        $items   = Cart::getItems();
+        $rawItems = Cart::getItems();
+        $items = [];
+        
+        foreach ($rawItems as $id => $item) {
+            if (isset($item['product']) && is_array($item['product'])) {
+                $items[] = array_merge($item['product'], [
+                    'quantity' => $item['quantity'] ?? 1,
+                    'cart_id' => $id
+                ]);
+            }
+        }
+        
         $subtotal = Cart::getTotal();
         $coupon  = Coupon::getSessionCoupon();
         $discount = $coupon ? Coupon::calculateDiscount($coupon, $subtotal) : 0;

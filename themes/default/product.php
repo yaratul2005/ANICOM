@@ -111,7 +111,7 @@
         </div>
 
         <?php if (!empty($product['description'])): ?>
-        <div class="product-desc"><?= nl2br(htmlspecialchars($product['description'])) ?></div>
+        <div class="product-desc"><?= $product['description'] ?></div>
         <?php endif; ?>
 
         <form method="POST" action="/cart/add">
